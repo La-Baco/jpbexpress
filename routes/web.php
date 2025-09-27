@@ -24,7 +24,6 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.process');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Admin routes
-// Admin routes
 Route::middleware(['auth', 'role:admin'])->group(function () {
 
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
