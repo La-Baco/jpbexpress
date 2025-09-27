@@ -1,0 +1,95 @@
+<?php
+
+namespace App\Http\Controllers\kurir;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Barang;
+use App\Models\Pengiriman;
+
+class PengirimanController extends Controller
+{
+    /**
+     * Tampilkan daftar pengiriman kurir
+     */
+    public function index(Request $request)
+    {
+        $kurir = Auth::user();
+        $areaId = $kurir->area->id ?? null;
+
+        if (!$areaId) {
+            return redirect()->back()->withErrors(['area' => 'Anda belum memiliki area yang ditugaskan.']);
+        }
+
+        // Ambil periode pengiriman yang aktif sesuai tanggal sekarang
+        $today = now()->toDateString();
+
+        $pengirimanAktif = Pengiriman::whereDate('tanggal_keberangkatan', '<=', $today)
+            ->whereDate('tanggal_distribusi', '>=', $today)
+            ->first();
+
+        if (!$pengirimanAktif) {
+            return redirect()->back()->withErrors(['pengiriman' => 'Tidak ada pengiriman aktif untuk hari ini.']);
+        }
+
+        // Ambil barang hanya untuk periode aktif
+        $query = Barang::where('pengiriman_id', $pengirimanAktif->id)
+            ->whereHas('pelanggan', function ($q) use ($areaId) {
+                $q->where('area_id', $areaId);
+            })
+            ->with(['pelanggan', 'pengiriman']);
+
+        // Filter pencarian
+        if ($request->filled('q')) {
+            $search = $request->q;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('pelanggan', function ($q2) use ($search) {
+                    $q2->where('nama', 'like', "%{$search}%")
+                        ->orWhere('alamat', 'like', "%{$search}%");
+                })
+                    ->orWhere('kategori', 'like', "%{$search}%");
+            });
+        }
+
+        $barangs = $query->get();
+
+        $tanggalKeberangkatan = $pengirimanAktif->tanggal_keberangkatan;
+        $tanggalDistribusi = $pengirimanAktif->tanggal_distribusi;
+
+        return view('kurir.pengiriman.index', compact(
+            'barangs',
+            'tanggalKeberangkatan',
+            'tanggalDistribusi',
+            'pengirimanAktif'
+        ));
+    }
+
+
+    public function updateStatus(Request $request, Barang $barang)
+    {
+        $request->validate([
+            'status' => 'required|in:proses,tertunda,selesai',
+            'catatan' => 'nullable|string|max:255',
+        ]);
+
+        $barang->update([
+            'status' => $request->status,
+            'catatan' => $request->catatan,
+        ]);
+
+        // Update status pengiriman otomatis
+        $pengiriman = $barang->pengiriman;
+        $totalBelumSelesai = $pengiriman->barangs()->where('status', '!=', 'selesai')->count();
+
+        if ($totalBelumSelesai === 0) {
+            $pengiriman->update(['status' => 'selesai']);
+        } else {
+            if ($pengiriman->status === 'selesai') {
+                $pengiriman->update(['status' => 'proses']);
+            }
+        }
+
+        return back()->with('success', 'Status barang berhasil diperbarui.');
+    }
+}
