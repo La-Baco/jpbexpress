@@ -1,0 +1,43 @@
+name: Deploy Laravel to VPS
+
+on:
+  push:
+    branches:
+      - main   # sesuaikan dengan branch utama kamu
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to VPS
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+            cd ${{ secrets.VPS_PATH }}
+
+            # kalau folder kosong -> clone
+            if [ ! -d .git ]; then
+              git clone git@github.com:username/repo.git .
+            fi
+
+            git pull origin main
+
+            composer install --no-dev --optimize-autoloader
+            php artisan migrate --force
+            php artisan config:clear
+            php artisan cache:clear
+            php artisan route:clear
+            php artisan view:clear
+            php artisan config:cache
+
+            # reload service php/nginx
+            sudo systemctl reload nginx
+          EOF
