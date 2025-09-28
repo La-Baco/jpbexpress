@@ -36,25 +36,37 @@
     <!-- Hoverable Table rows -->
     <div class="card">
         <div class="card-header">
-        <div class="d-flex justify-content-between align-items-center mb-1">
-            <h5 class="mb-0">Pelanggan</h5>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <h5 class="mb-0">Pelanggan</h5>
 
-            <!-- Tombol Tambah (modal trigger) -->
-            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#tambahModal">
-                <i class="bx bx-plus"></i> Add
-            </button>
+                <div>
+                    <!-- Import Excel (hidden input) -->
+                    <form id="formImport" action="{{ route('admin.pelanggan.import') }}" method="POST"
+                        enctype="multipart/form-data" class="d-inline">
+                        @csrf
+                        <input type="file" name="file" id="fileInput" class="d-none" accept=".xlsx,.xls,.csv">
+                        <button type="button" class="btn btn-success btn-sm me-2"
+                            onclick="document.getElementById('fileInput').click();">
+                            <i class="bx bx-upload"></i> Import Excel
+                        </button>
+                    </form>
+
+                    <!-- Tombol Tambah (modal trigger) -->
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#tambahModal">
+                        <i class="bx bx-plus"></i> Add
+                    </button>
+                </div>
+            </div>
+            <!-- Form Search (tepat di bawah judul pelanggan) -->
+            <form action="{{ route('admin.pelanggan.index') }}" method="GET" class="d-flex" style="max-width: 300px;">
+                <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm me-2"
+                    placeholder="Cari pelanggan...">
+                <button type="submit" class="btn btn-sm btn-outline-secondary">
+                    <i class="bx bx-search"></i>
+                </button>
+            </form>
         </div>
-
-        <!-- Form Search (tepat di bawah judul pelanggan) -->
-        <form action="{{ route('admin.pelanggan.index') }}" method="GET" class="d-flex" style="max-width: 300px;">
-            <input type="text" name="q" value="{{ request('q') }}"
-                   class="form-control form-control-sm me-2"
-                   placeholder="Cari pelanggan...">
-            <button type="submit" class="btn btn-sm btn-outline-secondary">
-                <i class="bx bx-search"></i>
-            </button>
-        </form>
-    </div>
 
         <div class="table-responsive text-nowrap">
             <table class="table table-hover">
@@ -78,6 +90,7 @@
                             <td>{{ $p->area->nama_area ?? '-' }}</td>
                             <td>
                                 <div class="d-flex gap-2">
+
 
 
                                     <!-- Edit -->
@@ -194,5 +207,34 @@
             </div>
         </div>
     @endforeach
+
+
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function() {
+            const file = this.files[0];
+            if (!file) return;
+
+            // validasi extension
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!['xlsx', 'xls', 'csv'].includes(ext)) {
+                alert('Format file harus .xlsx, .xls, atau .csv');
+                this.value = '';
+                return;
+            }
+
+            // validasi ukuran (contoh max 5 MB)
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                alert('Ukuran file terlalu besar (maks 5MB).');
+                this.value = '';
+                return;
+            }
+
+            // submit form
+            document.getElementById('formImport').submit();
+        });
+    </script>
+
+
 
 @endsection

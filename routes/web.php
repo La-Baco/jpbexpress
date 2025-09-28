@@ -48,6 +48,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/admin/pelanggan', [PelangganController::class, 'store'])->name('admin.pelanggan.store');
     Route::put('/admin/pelanggan/{id}', [PelangganController::class, 'update'])->name('admin.pelanggan.update');
     Route::delete('/admin/pelanggan/{id}', [PelangganController::class, 'destroy'])->name('admin.pelanggan.destroy');
+    Route::post('/admin/pelanggan/import', [PelangganController::class, 'import'])->name('admin.pelanggan.import');
 
     // Pengiriman
     Route::get('/admin/pengiriman', [AdminPengirimanController::class, 'index'])->name('admin.pengiriman.index');

@@ -146,15 +146,16 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label>Pelanggan</label>
-                        <select name="pelanggan_id" class="form-select" required>
+                        <select name="pelanggan_id" class="form-select select2" required>
                             <option value="">-- Pilih Pelanggan --</option>
                             @foreach (\App\Models\Pelanggan::with('area')->get() as $p)
-                                <option value="{{ $p->id }}">{{ $p->nama }}
-                                    ({{ $p->area->nama_area ?? '-' }})
+                                <option value="{{ $p->id }}">
+                                    {{ $p->nama }} ({{ $p->area->nama_area ?? '-' }})
                                 </option>
                             @endforeach
                         </select>
                     </div>
+
                     <div class="mb-3">
                         <label>Kategori</label>
                         <select name="kategori" class="form-select" required>
@@ -239,4 +240,21 @@
             </div>
         </div>
     @endforeach
+
+
+    @section('js')
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+        <script>
+            $(document).ready(function() {
+                $('.select2').select2({
+                    dropdownParent: $('#tambahModal'), // biar dropdown muncul dalam modal
+                    placeholder: "-- Pilih Pelanggan --",
+                    allowClear: true
+                });
+            });
+        </script>
+
+    @endsection
 @endsection

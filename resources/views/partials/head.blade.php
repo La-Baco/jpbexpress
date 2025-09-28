@@ -33,6 +33,8 @@
     <link rel="stylesheet" href="{{asset('assets/template1/vendor/libs/apex-charts/apex-charts.css')}} " />
 
     <!-- Page CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
 
     <!-- Helpers -->
     <script src="{{asset('assets/template1/vendor/js/helpers.js')}} "></script>

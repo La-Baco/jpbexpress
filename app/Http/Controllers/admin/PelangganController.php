@@ -5,7 +5,9 @@ namespace App\Http\Controllers\admin;
 use App\Models\Area;
 use App\Models\Pelanggan;
 use Illuminate\Http\Request;
+use App\Imports\PelangganImport;
 use App\Http\Controllers\Controller;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PelangganController extends Controller
 {
@@ -71,5 +73,16 @@ class PelangganController extends Controller
     {
         $id->delete();
         return redirect()->route('admin.pelanggan.index')->with('success', 'Pelanggan berhasil dihapus');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,csv,xls'
+        ]);
+
+        Excel::import(new PelangganImport, $request->file('file'));
+
+        return redirect()->route('admin.pelanggan.index')->with('success', 'Data pelanggan berhasil diimport.');
     }
 }
