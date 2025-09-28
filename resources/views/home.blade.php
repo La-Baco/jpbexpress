@@ -244,76 +244,80 @@
         <!-- Features Section -->
         <section id="pengiriman" class="features section">
 
-            <!-- Section Title -->
-            <div class="container section-title" data-aos="fade-up">
-                <h2>Pengiriman Terbaru</h2>
-                <p>
-                    Lihat daftar pengiriman terbaru beserta jumlah paket per pelanggan di masing-masing area.
-                </p>
+            <div class="container section-title text-center" data-aos="fade-up">
+                @if (isset($pengirimanHariIni) && $pengirimanHariIni)
+                    <h2>
+                        Cek Pengiriman
+                        ({{ \Carbon\Carbon::parse($pengirimanHariIni->tanggal_keberangkatan)->translatedFormat('d') }}
+                        -
+                        {{ \Carbon\Carbon::parse($pengirimanHariIni->tanggal_distribusi)->translatedFormat('d F Y') }})
+                    </h2>
+                @else
+                    <h2>Cek Pengiriman</h2>
+                @endif
+                <p>Masukkan kode tracking Anda untuk melihat paket di pengiriman ini.</p>
             </div>
 
-            <div class="container">
-
-                <!-- Nav Tabs per Area -->
-                <div class="d-flex justify-content-center mb-3">
-                    <ul class="nav nav-tabs" data-aos="fade-up" data-aos-delay="100">
-                        @forelse($data as $area => $pelanggans)
-                            <li class="nav-item">
-                                <a class="nav-link @if ($loop->first) active show @endif"
-                                    data-bs-toggle="tab" data-bs-target="#tab-{{ \Str::slug($area) }}"
-                                    style="transition: all 0.3s ease;">
-                                    <h4>{{ $area }}</h4>
-                                </a>
-                            </li>
-                        @empty
-                            <li class="nav-item">
-                                <span class="text-muted">Belum ada pengiriman untuk periode ini</span>
-                            </li>
-                        @endforelse
-                    </ul>
-                </div>
-
-                <!-- Tab Content -->
-                <div class="tab-content" data-aos="fade-up" data-aos-delay="200">
-                    @forelse($data as $area => $pelanggans)
-                        <div class="tab-pane fade @if ($loop->first) show active @endif"
-                            id="tab-{{ \Str::slug($area) }}">
-                            <div class="table-responsive text-nowrap shadow-sm rounded"
-                                style="transition: all 0.4s ease;">
-                                <table class="table table-hover align-middle mb-0 rounded"
-                                    style="transition: all 0.3s ease;">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th scope="col" class="text-center">#</th>
-                                            <th scope="col" class="text-center">Nama</th>
-                                            <th scope="col" class="text-center">Quantity</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @php $no = 1; @endphp
-                                        @foreach ($pelanggans as $nama => $qty)
-                                            <tr class="align-middle" style="transition: background-color 0.3s ease;">
-                                                <td class="text-center">{{ $no++ }}</td>
-                                                <td class="text-center">{{ $nama }}</td>
-                                                <td class="text-center">
-                                                    <span
-                                                        class="badge rounded-pill bg-primary px-3 py-2">{{ $qty }}</span>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    @empty
-                        <div class="text-center mt-3">
-                            <p class="text-muted">Tidak ada pengiriman saat ini.</p>
-                        </div>
-                    @endforelse
-                </div>
-
+           <!-- Form Tracking -->
+<div class="container d-flex justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6"> {{-- full di hp, kecil di pc --}}
+        @if (session('error'))
+            <div class="alert alert-danger text-center shadow-sm rounded-pill">
+                {{ session('error') }}
             </div>
+        @endif
 
+        <form action="{{ route('tracking.cek') }}" method="POST"
+            class="p-4 rounded-4 shadow-lg bg-light border-0" style="transition: transform .2s;"
+            onmouseover="this.style.transform='scale(1.02)'"
+            onmouseout="this.style.transform='scale(1)'">
+            @csrf
+            <div class="mb-4 text-center">
+                <label for="kode_tracking" class="form-label fw-semibold fs-5 text-primary">
+                    Masukkan Kode Tracking
+                </label>
+                <input type="text" class="form-control text-center rounded-pill shadow-sm mx-auto"
+                    id="kode_tracking" name="kode_tracking" placeholder="Masukkan kode"
+                    maxlength="9" required style="max-width: 300px;">
+            </div>
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm">
+                    Lihat Paket Saya
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Hasil Tracking -->
+<div class="container d-flex justify-content-center mt-3">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="p-4 rounded-4 shadow-lg text-center bg-white border-0"
+            style="transition: transform .2s;" onmouseover="this.style.transform='scale(1.02)'"
+            onmouseout="this.style.transform='scale(1)'">
+
+            <h3 class="mb-4 text-primary fw-bold">Paket Anda</h3>
+
+            @if (isset($pelanggan) && $pelanggan)
+                <p class="fs-5 fw-semibold">{{ $pelanggan->nama }}</p>
+                <div class="mb-3">
+                    <p class="fs-5 mb-1 fw-semibold">Jumlah Barang:</p>
+                    <span class="badge bg-primary text-white px-3 py-2 fs-6 rounded-pill">
+                        {{ $jumlahBarang ?? 0 }}
+                    </span>
+                </div>
+
+                @if (($jumlahBarang ?? 0) == 0)
+                    <div class="alert alert-warning text-center rounded-3 shadow-sm">
+                        Anda tidak memiliki paket di priode ini
+                    </div>
+                @endif
+            @else
+                <p class="text-muted fst-italic">Silakan masukkan kode tracking Anda untuk melihat paket.</p>
+            @endif
+        </div>
+    </div>
+</div>
 
         </section><!-- /Features Section -->
 

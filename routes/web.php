@@ -18,6 +18,7 @@ use App\Http\Controllers\kurir\PengirimanController as KurirPengirimanController
 
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::match(['get', 'post'], '/tracking', [HomeController::class, 'tracking'])->name('tracking.cek');
 
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.process');
