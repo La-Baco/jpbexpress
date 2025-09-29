@@ -16,11 +16,7 @@ class DashboardController extends Controller
         $today   = Carbon::today();
 
         // Ambil pengiriman terbaru yang sudah dimulai
-        $latestPengiriman = Pengiriman::whereDate('tanggal_keberangkatan', '<=', $today)
-            ->whereDate('tanggal_distribusi', '>=', $today) // penting
-            ->orderBy('tanggal_keberangkatan', 'desc')
-            ->first();
-
+        $latestPengiriman = Pengiriman::orderBy('tanggal_keberangkatan', 'desc')->first();
 
         // Ambil pengiriman sebelumnya (sebelum latest)
         $previousPengiriman = null;

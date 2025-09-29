@@ -24,11 +24,7 @@ class DashboardController extends Controller
         $totalKurir = User::where('role', 'kurir')->count();
 
         // 3. Ambil pengiriman terbaru yang sudah dimulai
-        $latestPengiriman = Pengiriman::whereDate('tanggal_keberangkatan', '<=', $today)
-            ->whereDate('tanggal_distribusi', '>=', $today) // cek masih aktif
-            ->orderBy('tanggal_keberangkatan', 'desc')
-            ->first();
-
+        $latestPengiriman = Pengiriman::orderBy('tanggal_keberangkatan', 'desc')->first();
 
         $latestPengirimanId = $latestPengiriman?->id;
 
