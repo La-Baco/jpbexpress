@@ -23,7 +23,7 @@ class BarangController extends Controller
             })->orWhere('kategori', 'like', "%$q%");
         }
 
-        $barangs = $query->latest()->paginate(10)->withQueryString();
+        $barangs = $query->latest()->get();
 
         return view('admin.barang.index', compact('pengiriman', 'barangs'));
     }
