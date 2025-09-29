@@ -70,6 +70,12 @@
             <div data-i18n="Basic">Tugas</div>
         </a>
     </li>
+    <li class="menu-item {{ request()->is('kurir/pengiriman/riwayat') ? 'active' : '' }}">
+        <a href=" {{route('kurir.pengiriman.riwayat')}} " class="menu-link">
+            <i class="menu-icon tf-icons bx bx-collection"></i>
+            <div data-i18n="Basic">Riwayat</div>
+        </a>
+    </li>
 
     <!-- Forms & Tables -->
     <li class="menu-header small text-uppercase"><span class="menu-header-text">Akun</span></li>

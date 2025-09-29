@@ -92,4 +92,44 @@ class PengirimanController extends Controller
 
         return back()->with('success', 'Status barang berhasil diperbarui.');
     }
+
+    public function riwayat(Request $request)
+    {
+        $kurir = Auth::user();
+        $areaId = $kurir->area->id ?? null;
+
+        if (!$areaId) {
+            return redirect()->back()->withErrors(['area' => 'Anda belum memiliki area yang ditugaskan.']);
+        }
+
+        $today = now()->toDateString();
+
+        // Ambil semua periode pengiriman SEBELUM hari ini
+        $riwayatPengiriman = Pengiriman::whereDate('tanggal_distribusi', '<', $today)
+            ->orderByDesc('tanggal_keberangkatan')
+            ->get();
+
+        // Ambil list tanggal untuk dropdown filter
+        $tanggalList = $riwayatPengiriman->pluck('tanggal_keberangkatan')->unique();
+
+        // Tentukan tanggal dipilih
+        $tanggalDipilih = $request->get('tanggal', $tanggalList->first());
+
+        // Ambil data barang sesuai tanggal yang dipilih
+        $barangs = Barang::whereHas('pengiriman', function ($q) use ($tanggalDipilih) {
+            $q->whereDate('tanggal_keberangkatan', $tanggalDipilih);
+        })
+            ->whereHas('pelanggan', function ($q) use ($areaId) {
+                $q->where('area_id', $areaId);
+            })
+            ->with(['pelanggan', 'pengiriman'])
+            ->get();
+
+        return view('kurir.pengiriman.riwayat', compact(
+            'riwayatPengiriman',
+            'tanggalList',
+            'tanggalDipilih',
+            'barangs'
+        ));
+    }
 }

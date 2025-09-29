@@ -82,4 +82,7 @@ Route::middleware(['auth', 'role:kurir'])->group(function () {
     Route::get('/kurir/pengiriman', [KurirPengirimanController::class, 'index'])->name('kurir.pengiriman.index');
     Route::post('/kurir/pengiriman/{barang}/status', [KurirPengirimanController::class, 'updateStatus'])->name('kurir.pengiriman.updateStatus');
 
+    // route riwayat
+    Route::get('/kurir/pengiriman/riwayat', [KurirPengirimanController::class, 'riwayat'])->name('kurir.pengiriman.riwayat');
+
 });
