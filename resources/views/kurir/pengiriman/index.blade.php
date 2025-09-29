@@ -50,7 +50,7 @@
         </div>
 
         <div class="table-responsive text-nowrap">
-            <table class="table table-hover" >
+            <table class="table table-hover">
                 <thead>
                     <tr>
                         <th>No</th>
@@ -99,7 +99,9 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="text-center">Belum ada barang untuk dikirim.</td>
+                            <td colspan="9" class="text-center">
+                                Tidak ada pengiriman hari ini.
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>

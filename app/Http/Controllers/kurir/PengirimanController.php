@@ -22,40 +22,41 @@ class PengirimanController extends Controller
             return redirect()->back()->withErrors(['area' => 'Anda belum memiliki area yang ditugaskan.']);
         }
 
-        // Ambil periode pengiriman yang aktif sesuai tanggal sekarang
         $today = now()->toDateString();
 
         $pengirimanAktif = Pengiriman::whereDate('tanggal_keberangkatan', '<=', $today)
             ->whereDate('tanggal_distribusi', '>=', $today)
             ->first();
 
-        if (!$pengirimanAktif) {
-            return redirect()->back()->withErrors(['pengiriman' => 'Tidak ada pengiriman aktif untuk hari ini.']);
-        }
-
-        // Ambil barang hanya untuk periode aktif
-        $query = Barang::where('pengiriman_id', $pengirimanAktif->id)
-            ->whereHas('pelanggan', function ($q) use ($areaId) {
-                $q->where('area_id', $areaId);
-            })
-            ->with(['pelanggan', 'pengiriman']);
-
-        // Filter pencarian
-        if ($request->filled('q')) {
-            $search = $request->q;
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('pelanggan', function ($q2) use ($search) {
-                    $q2->where('nama', 'like', "%{$search}%")
-                        ->orWhere('alamat', 'like', "%{$search}%");
+        if ($pengirimanAktif) {
+            // Kalau ada pengiriman aktif → ambil data barang
+            $query = Barang::where('pengiriman_id', $pengirimanAktif->id)
+                ->whereHas('pelanggan', function ($q) use ($areaId) {
+                    $q->where('area_id', $areaId);
                 })
-                    ->orWhere('kategori', 'like', "%{$search}%");
-            });
+                ->with(['pelanggan', 'pengiriman']);
+
+            // Filter pencarian
+            if ($request->filled('q')) {
+                $search = $request->q;
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('pelanggan', function ($q2) use ($search) {
+                        $q2->where('nama', 'like', "%{$search}%")
+                            ->orWhere('alamat', 'like', "%{$search}%");
+                    })
+                        ->orWhere('kategori', 'like', "%{$search}%");
+                });
+            }
+
+            $barangs = $query->get();
+            $tanggalKeberangkatan = $pengirimanAktif->tanggal_keberangkatan;
+            $tanggalDistribusi = $pengirimanAktif->tanggal_distribusi;
+        } else {
+            // Kalau tidak ada pengiriman aktif → kosongkan data
+            $barangs = collect();
+            $tanggalKeberangkatan = null;
+            $tanggalDistribusi = null;
         }
-
-        $barangs = $query->get();
-
-        $tanggalKeberangkatan = $pengirimanAktif->tanggal_keberangkatan;
-        $tanggalDistribusi = $pengirimanAktif->tanggal_distribusi;
 
         return view('kurir.pengiriman.index', compact(
             'barangs',
@@ -64,6 +65,7 @@ class PengirimanController extends Controller
             'pengirimanAktif'
         ));
     }
+
 
 
     public function updateStatus(Request $request, Barang $barang)
