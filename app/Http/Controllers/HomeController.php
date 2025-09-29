@@ -11,10 +11,13 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $today = \Carbon\Carbon::today()->toDateString();
+        $today = Carbon::today()->toDateString();
 
-        $pengirimanHariIni = \App\Models\Pengiriman::where('tanggal_keberangkatan', '<=', $today)
-            ->where('tanggal_distribusi', '>=', $today)
+        $pengirimanHariIni = Pengiriman::where('tanggal_keberangkatan', '<=', $today)
+            ->where(function ($q) use ($today) {
+                $q->where('tanggal_distribusi', '>=', $today)
+                    ->orWhereNull('tanggal_distribusi'); // kalau distribusi kosong → anggap aktif hari keberangkatan
+            })
             ->orderBy('tanggal_keberangkatan', 'desc')
             ->first();
 
@@ -26,8 +29,6 @@ class HomeController extends Controller
             'pengirimanHariIni' => $pengirimanHariIni,
         ]);
     }
-
-
 
     public function tracking(Request $request)
     {
@@ -50,7 +51,10 @@ class HomeController extends Controller
         $today = Carbon::today()->toDateString();
 
         $pengirimanAktif = Pengiriman::where('tanggal_keberangkatan', '<=', $today)
-            ->where('tanggal_distribusi', '>=', $today)
+            ->where(function ($q) use ($today) {
+                $q->where('tanggal_distribusi', '>=', $today)
+                    ->orWhereNull('tanggal_distribusi');
+            })
             ->orderBy('tanggal_keberangkatan', 'desc')
             ->first();
 
@@ -62,7 +66,6 @@ class HomeController extends Controller
             ->where('pengiriman_id', $pengirimanAktif->id)
             ->count();
 
-        // simpan data ke session supaya bisa ditampilkan di home
         return redirect('/#pengiriman')->with([
             'pelanggan' => $pelanggan,
             'pengirimanAktif' => $pengirimanAktif,
