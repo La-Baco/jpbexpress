@@ -820,7 +820,7 @@
                     <div class="footer-contact pt-3">
                         <p>Jln. Adirasa, Kolos Sumenep, Toko Barokah</p>
                         <p>Sebelah Timur Istana Parfum, pertigaan Kota Sumenep, Jawa Timur, 69417</p>
-                        <p class="mt-3"><strong>Phone:</strong> <span>>+62 859-5676-4737</span></p>
+                        <p class="mt-3"><strong>Phone:</strong> <span>+62 859-5676-4737</span></p>
                         <p><strong>Email:</strong> <span>jpbexpress@gmail.com</span></p>
                     </div>
                     <div class="social-links d-flex mt-4">
