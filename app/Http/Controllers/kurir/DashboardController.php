@@ -17,16 +17,19 @@ class DashboardController extends Controller
 
         // Ambil pengiriman terbaru yang sudah dimulai
         $latestPengiriman = Pengiriman::whereDate('tanggal_keberangkatan', '<=', $today)
+            ->whereDate('tanggal_distribusi', '>=', $today) // penting
             ->orderBy('tanggal_keberangkatan', 'desc')
             ->first();
+
 
         // Ambil pengiriman sebelumnya (sebelum latest)
         $previousPengiriman = null;
         if ($latestPengiriman) {
-            $previousPengiriman = Pengiriman::whereDate('tanggal_keberangkatan', '<', $latestPengiriman->tanggal_keberangkatan)
+            $previousPengiriman = Pengiriman::whereDate('tanggal_distribusi', '<', $latestPengiriman->tanggal_keberangkatan)
                 ->orderBy('tanggal_keberangkatan', 'desc')
                 ->first();
         }
+
 
         // Data periode terbaru
         $totalBarang = $selesai = $proses = $tertunda = $totalHarga = 0;
