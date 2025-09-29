@@ -60,7 +60,7 @@ class PelangganController extends Controller
         $request->validate([
             'nama' => 'required|string|max:255',
             'alamat' => 'required|string',
-            'telpon' => 'nullable|string|max:15',
+            'telpon' => 'required|string|max:15',
             'area_id' => 'required|exists:areas,id',
         ]);
 

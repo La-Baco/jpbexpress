@@ -138,7 +138,7 @@
                     </div>
                     <div class="mb-3">
                         <label>Telepon</label>
-                        <input type="text" name="telpon" class="form-control" >
+                        <input type="text" name="telpon" class="form-control" required>
                     </div>
                     <div class="mb-3">
                         <label>Alamat</label>
