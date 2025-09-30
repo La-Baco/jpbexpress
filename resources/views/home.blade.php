@@ -258,66 +258,84 @@
                 <p>Masukkan kode tracking Anda untuk melihat paket di pengiriman ini.</p>
             </div>
 
-           <!-- Form Tracking -->
-<div class="container d-flex justify-content-center">
-    <div class="col-12 col-md-8 col-lg-6"> {{-- full di hp, kecil di pc --}}
-        @if (session('error'))
-            <div class="alert alert-danger text-center shadow-sm rounded-pill">
-                {{ session('error') }}
-            </div>
-        @endif
+            <!-- Form Tracking -->
+            <div class="container d-flex justify-content-center">
+                <div class="col-12 col-md-8 col-lg-6"> {{-- full di hp, kecil di pc --}}
+                    @if (session('error'))
+                        <div class="alert alert-danger text-center shadow-sm rounded-pill">
+                            {{ session('error') }}
+                        </div>
+                    @endif
 
-        <form action="{{ route('tracking.cek') }}" method="POST"
-            class="p-4 rounded-4 shadow-lg bg-light border-0" style="transition: transform .2s;"
-            onmouseover="this.style.transform='scale(1.02)'"
-            onmouseout="this.style.transform='scale(1)'">
-            @csrf
-            <div class="mb-4 text-center">
-                <label for="kode_tracking" class="form-label fw-semibold fs-5 text-primary">
-                    Masukkan Kode Tracking
-                </label>
-                <input type="text" class="form-control text-center rounded-pill shadow-sm mx-auto"
-                    id="kode_tracking" name="kode_tracking" placeholder="Masukkan kode"
-                    maxlength="9" required style="max-width: 300px;">
-            </div>
-            <div class="text-center">
-                <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm">
-                    Lihat Paket Saya
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Hasil Tracking -->
-<div class="container d-flex justify-content-center mt-3">
-    <div class="col-12 col-md-8 col-lg-6">
-        <div class="p-4 rounded-4 shadow-lg text-center bg-white border-0"
-            style="transition: transform .2s;" onmouseover="this.style.transform='scale(1.02)'"
-            onmouseout="this.style.transform='scale(1)'">
-
-            <h3 class="mb-4 text-primary fw-bold">Paket Anda</h3>
-
-            @if (isset($pelanggan) && $pelanggan)
-                <p class="fs-5 fw-semibold">{{ $pelanggan->nama }}</p>
-                <div class="mb-3">
-                    <p class="fs-5 mb-1 fw-semibold">Jumlah Barang:</p>
-                    <span class="badge bg-primary text-white px-3 py-2 fs-6 rounded-pill">
-                        {{ $jumlahBarang ?? 0 }}
-                    </span>
+                    <form action="{{ route('tracking.cek') }}" method="POST"
+                        class="p-4 rounded-4 shadow-lg bg-light border-0" style="transition: transform .2s;"
+                        onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                        @csrf
+                        <div class="mb-4 text-center">
+                            <label for="kode_tracking" class="form-label fw-semibold fs-5 text-primary">
+                                Masukkan Kode Tracking
+                            </label>
+                            <input type="text" class="form-control text-center rounded-pill shadow-sm mx-auto"
+                                id="kode_tracking" name="kode_tracking" placeholder="Masukkan kode" maxlength="9"
+                                required style="max-width: 300px;">
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm">
+                                Lihat Paket Saya
+                            </button>
+                        </div>
+                    </form>
                 </div>
+            </div>
 
-                @if (($jumlahBarang ?? 0) == 0)
-                    <div class="alert alert-warning text-center rounded-3 shadow-sm">
-                        Anda tidak memiliki paket di priode ini
+            <!-- Hasil Tracking -->
+            <div class="container d-flex justify-content-center mt-3">
+                <div class="col-12 col-md-8 col-lg-6">
+                    <div class="p-4 rounded-4 shadow-lg text-center bg-white border-0"
+                        style="transition: transform .2s;" onmouseover="this.style.transform='scale(1.02)'"
+                        onmouseout="this.style.transform='scale(1)'">
+
+                        <h3 class="mb-4 text-primary fw-bold">Paket Anda</h3>
+
+                        @if (isset($pelanggan) && $pelanggan)
+                            <p class="fs-5 fw-semibold">{{ $pelanggan->nama }}</p>
+
+                            @if (isset($barangs) && $barangs->count() > 0)
+                                <div class="table-responsive mt-2">
+                                    <table class="table table-bordered table-striped shadow-sm">
+                                        <thead class="table">
+                                            <tr>
+                                                <th>No</th>
+                                                <th>Kategori</th>
+                                                <th>Harga</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($barangs as $index => $barang)
+                                                <tr>
+                                                    <td>{{ $index + 1 }}</td>
+                                                    <td>{{ $barang->kategori ?? '-' }}</td>
+                                                    <td>Rp {{ number_format($barang->harga ?? 0, 0, ',', '.') }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @endif
+
+
+                            @if (($jumlahBarang ?? 0) == 0)
+                                <div class="alert alert-warning text-center rounded-3 shadow-sm">
+                                    Anda tidak memiliki paket di priode ini
+                                </div>
+                            @endif
+                        @else
+                            <p class="text-muted fst-italic">Silakan masukkan kode tracking Anda untuk melihat paket.
+                            </p>
+                        @endif
                     </div>
-                @endif
-            @else
-                <p class="text-muted fst-italic">Silakan masukkan kode tracking Anda untuk melihat paket.</p>
-            @endif
-        </div>
-    </div>
-</div>
+                </div>
+            </div>
 
         </section><!-- /Features Section -->
 

@@ -16,16 +16,36 @@ class HomeController extends Controller
         $pengirimanHariIni = Pengiriman::where('tanggal_keberangkatan', '<=', $today)
             ->where(function ($q) use ($today) {
                 $q->where('tanggal_distribusi', '>=', $today)
-                    ->orWhereNull('tanggal_distribusi'); // kalau distribusi kosong → anggap aktif hari keberangkatan
+                    ->orWhereNull('tanggal_distribusi');
             })
             ->orderBy('tanggal_keberangkatan', 'desc')
             ->first();
 
+        // default nilai
+        $pelanggan = null;
+        $pengirimanAktif = null;
+        $jumlahBarang = 0;
+        $barangs = collect();
+
+        // kalau ada session hasil tracking
+        if (session('pelanggan_id') && session('pengiriman_id')) {
+            $pelanggan = Pelanggan::find(session('pelanggan_id'));
+            $pengirimanAktif = Pengiriman::find(session('pengiriman_id'));
+
+            if ($pelanggan && $pengirimanAktif) {
+                $barangs = $pelanggan->barangs()
+                    ->where('pengiriman_id', $pengirimanAktif->id)
+                    ->get();
+
+                $jumlahBarang = $barangs->count();
+            }
+        }
+
         return view('home', [
-            'pelanggan' => session('pelanggan'),
-            'pengirimanAktif' => session('pengirimanAktif'),
-            'jumlahBarang' => session('jumlahBarang', 0),
-            'barangs' => collect(),
+            'pelanggan' => $pelanggan,
+            'pengirimanAktif' => $pengirimanAktif,
+            'jumlahBarang' => $jumlahBarang,
+            'barangs' => $barangs,
             'pengirimanHariIni' => $pengirimanHariIni,
         ]);
     }
@@ -62,14 +82,10 @@ class HomeController extends Controller
             return redirect('/#pengiriman')->with('error', 'Tidak ada pengiriman untuk periode hari ini.');
         }
 
-        $jumlahBarang = $pelanggan->barangs()
-            ->where('pengiriman_id', $pengirimanAktif->id)
-            ->count();
-
+        // simpan ID saja, supaya bisa dipakai di index()
         return redirect('/#pengiriman')->with([
-            'pelanggan' => $pelanggan,
-            'pengirimanAktif' => $pengirimanAktif,
-            'jumlahBarang' => $jumlahBarang,
+            'pelanggan_id'   => $pelanggan->id,
+            'pengiriman_id'  => $pengirimanAktif->id,
         ]);
     }
 }
