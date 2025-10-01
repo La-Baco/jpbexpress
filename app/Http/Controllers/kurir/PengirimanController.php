@@ -111,26 +111,49 @@ class PengirimanController extends Controller
 
         $today = now()->toDateString();
 
-        // Ambil semua periode pengiriman SEBELUM hari ini
-        $riwayatPengiriman = Pengiriman::whereDate('tanggal_distribusi', '<', $today)
+        // Ambil semua periode pengiriman yang sudah didistribusikan SEBELUM hari ini
+        $riwayatPengiriman = Pengiriman::whereNotNull('tanggal_distribusi')
+            ->whereDate('tanggal_distribusi', '<', $today)
             ->orderByDesc('tanggal_keberangkatan')
             ->get();
 
-        // Ambil list tanggal untuk dropdown filter
-        $tanggalList = $riwayatPengiriman->pluck('tanggal_keberangkatan')->unique();
-
-        // Tentukan tanggal dipilih
-        $tanggalDipilih = $request->get('tanggal', $tanggalList->first());
-
-        // Ambil data barang sesuai tanggal yang dipilih
-        $barangs = Barang::whereHas('pengiriman', function ($q) use ($tanggalDipilih) {
-            $q->whereDate('tanggal_keberangkatan', $tanggalDipilih);
-        })
-            ->whereHas('pelanggan', function ($q) use ($areaId) {
-                $q->where('area_id', $areaId);
+        // Ambil list tanggal (format Y-m-d) untuk dropdown filter, unique & reindex
+        $tanggalList = $riwayatPengiriman
+            ->pluck('tanggal_keberangkatan')
+            ->map(function ($d) {
+                return \Carbon\Carbon::parse($d)->toDateString();
             })
-            ->with(['pelanggan', 'pengiriman'])
-            ->get();
+            ->unique()
+            ->values();
+
+        // Tentukan tanggal dipilih: prioritas dari request, lalu fallback ke pertama di list
+        $requestedTanggal = $request->get('tanggal');
+
+        if ($requestedTanggal) {
+            // coba parse request, kalau gagal fallback ke first()
+            try {
+                $tanggalDipilih = \Carbon\Carbon::parse($requestedTanggal)->toDateString();
+            } catch (\Exception $e) {
+                $tanggalDipilih = $tanggalList->first();
+            }
+        } else {
+            $tanggalDipilih = $tanggalList->first();
+        }
+
+        // Ambil data barang sesuai tanggal yang dipilih (jika ada)
+        if ($tanggalDipilih) {
+            $barangs = Barang::whereHas('pengiriman', function ($q) use ($tanggalDipilih) {
+                $q->whereDate('tanggal_keberangkatan', $tanggalDipilih);
+            })
+                ->whereHas('pelanggan', function ($q) use ($areaId) {
+                    $q->where('area_id', $areaId);
+                })
+                ->with(['pelanggan', 'pengiriman'])
+                ->get();
+        } else {
+            // tidak ada riwayat --> kosongkan
+            $barangs = collect();
+        }
 
         return view('kurir.pengiriman.riwayat', compact(
             'riwayatPengiriman',
