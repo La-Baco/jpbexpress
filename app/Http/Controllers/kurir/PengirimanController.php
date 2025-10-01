@@ -24,7 +24,14 @@ class PengirimanController extends Controller
 
         $today = now()->toDateString();
 
-        $pengirimanAktif = Pengiriman::orderByDesc('tanggal_keberangkatan')->first();
+        // Ambil pengiriman yang aktif hari ini (berdasarkan periode keberangkatan–distribusi)
+        $pengirimanAktif = Pengiriman::whereDate('tanggal_keberangkatan', '<=', $today)
+            ->where(function ($q) use ($today) {
+                $q->whereDate('tanggal_distribusi', '>=', $today)
+                    ->orWhereNull('tanggal_distribusi');
+            })
+            ->orderByDesc('tanggal_keberangkatan')
+            ->first();
 
         if ($pengirimanAktif) {
             // Kalau ada pengiriman aktif → ambil data barang
@@ -48,12 +55,12 @@ class PengirimanController extends Controller
 
             $barangs = $query->get();
             $tanggalKeberangkatan = $pengirimanAktif->tanggal_keberangkatan;
-            $tanggalDistribusi = $pengirimanAktif->tanggal_distribusi;
+            $tanggalDistribusi    = $pengirimanAktif->tanggal_distribusi;
         } else {
             // Kalau tidak ada pengiriman aktif → kosongkan data
             $barangs = collect();
             $tanggalKeberangkatan = null;
-            $tanggalDistribusi = null;
+            $tanggalDistribusi    = null;
         }
 
         return view('kurir.pengiriman.index', compact(

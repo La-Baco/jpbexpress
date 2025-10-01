@@ -15,7 +15,7 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $today = Carbon::today();
+        $today = Carbon::today()->toDateString();
 
         // 1. Total keseluruhan pelanggan
         $totalPelanggan = Pelanggan::count();
@@ -23,17 +23,24 @@ class DashboardController extends Controller
         // 2. Total kurir
         $totalKurir = User::where('role', 'kurir')->count();
 
-        // 3. Ambil pengiriman terbaru yang sudah dimulai
-        $latestPengiriman = Pengiriman::orderBy('tanggal_keberangkatan', 'desc')->first();
+        // 3. Ambil pengiriman AKTIF sesuai periode hari ini
+        $latestPengiriman = Pengiriman::where('tanggal_keberangkatan', '<=', $today)
+            ->where(function ($q) use ($today) {
+                $q->where('tanggal_distribusi', '>=', $today)
+                    ->orWhereNull('tanggal_distribusi');
+            })
+            ->orderBy('tanggal_keberangkatan', 'desc')
+            ->first();
 
         $latestPengirimanId = $latestPengiriman?->id;
 
         // Ambil pengiriman sebelumnya (periode sebelum latest)
-        $previousPengiriman = $latestPengiriman
-            ? Pengiriman::whereDate('tanggal_keberangkatan', '<', $latestPengiriman->tanggal_keberangkatan)
-            ->orderBy('tanggal_keberangkatan', 'desc')
-            ->first()
-            : null;
+        $previousPengiriman = null;
+        if ($latestPengiriman) {
+            $previousPengiriman = Pengiriman::where('tanggal_keberangkatan', '<', $latestPengiriman->tanggal_keberangkatan)
+                ->orderBy('tanggal_keberangkatan', 'desc')
+                ->first();
+        }
 
         // Statistik status pengiriman terbaru
         $pengirimanStats = [
@@ -84,7 +91,7 @@ class DashboardController extends Controller
             : 0;
 
         // Grafik pendapatan per pengiriman
-        $grafikPendapatan = Pengiriman::whereDate('tanggal_keberangkatan', '<=', $today)
+        $grafikPendapatan = Pengiriman::where('tanggal_keberangkatan', '<=', $today)
             ->orderBy('tanggal_keberangkatan')
             ->withCount(['barangs as total_pendapatan' => function ($q) {
                 $q->select(DB::raw('SUM(harga)'));
@@ -92,7 +99,7 @@ class DashboardController extends Controller
             ->get()
             ->map(function ($p) {
                 return [
-                    'tanggal' => $p->tanggal_keberangkatan->format('d M Y'),
+                    'tanggal' => Carbon::parse($p->tanggal_keberangkatan)->format('d M Y'),
                     'pendapatan' => $p->total_pendapatan ?? 0,
                 ];
             });

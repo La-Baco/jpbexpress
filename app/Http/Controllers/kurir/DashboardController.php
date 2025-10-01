@@ -15,17 +15,22 @@ class DashboardController extends Controller
         $kurirId = Auth::id();
         $today   = Carbon::today();
 
-        // Ambil pengiriman terbaru yang sudah dimulai
-        $latestPengiriman = Pengiriman::orderBy('tanggal_keberangkatan', 'desc')->first();
+        // Ambil pengiriman yang periode keberangkatan–distribusinya mencakup hari ini
+        $latestPengiriman = Pengiriman::whereDate('tanggal_keberangkatan', '<=', $today)
+            ->where(function ($q) use ($today) {
+                $q->whereDate('tanggal_distribusi', '>=', $today)
+                    ->orWhereNull('tanggal_distribusi');
+            })
+            ->orderBy('tanggal_keberangkatan', 'desc')
+            ->first();
 
-        // Ambil pengiriman sebelumnya (sebelum latest)
+        // Ambil pengiriman sebelumnya (periode sebelum latest)
         $previousPengiriman = null;
         if ($latestPengiriman) {
             $previousPengiriman = Pengiriman::whereDate('tanggal_distribusi', '<', $latestPengiriman->tanggal_keberangkatan)
                 ->orderBy('tanggal_keberangkatan', 'desc')
                 ->first();
         }
-
 
         // Data periode terbaru
         $totalBarang = $selesai = $proses = $tertunda = $totalHarga = 0;
