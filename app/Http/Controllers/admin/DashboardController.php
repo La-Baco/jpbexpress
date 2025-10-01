@@ -24,21 +24,28 @@ class DashboardController extends Controller
         $totalKurir = User::where('role', 'kurir')->count();
 
         // 3. Ambil pengiriman AKTIF sesuai periode hari ini
-        $latestPengiriman = Pengiriman::where('tanggal_keberangkatan', '<=', $today)
+        $latestPengiriman = Pengiriman::whereDate('tanggal_keberangkatan', '<=', $today)
             ->where(function ($q) use ($today) {
-                $q->where('tanggal_distribusi', '>=', $today)
+                $q->whereDate('tanggal_distribusi', '>=', $today)
                     ->orWhereNull('tanggal_distribusi');
             })
-            ->orderBy('tanggal_keberangkatan', 'desc')
+            ->orderByDesc('tanggal_keberangkatan')
             ->first();
+
+        // Kalau tidak ada pengiriman aktif → fallback ke pengiriman terakhir sebelum hari ini
+        if (!$latestPengiriman) {
+            $latestPengiriman = Pengiriman::whereDate('tanggal_keberangkatan', '<=', $today)
+                ->orderByDesc('tanggal_keberangkatan')
+                ->first();
+        }
 
         $latestPengirimanId = $latestPengiriman?->id;
 
         // Ambil pengiriman sebelumnya (periode sebelum latest)
         $previousPengiriman = null;
         if ($latestPengiriman) {
-            $previousPengiriman = Pengiriman::where('tanggal_keberangkatan', '<', $latestPengiriman->tanggal_keberangkatan)
-                ->orderBy('tanggal_keberangkatan', 'desc')
+            $previousPengiriman = Pengiriman::whereDate('tanggal_distribusi', '<', $latestPengiriman->tanggal_keberangkatan)
+                ->orderByDesc('tanggal_keberangkatan')
                 ->first();
         }
 

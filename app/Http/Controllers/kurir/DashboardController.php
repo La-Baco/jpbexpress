@@ -13,22 +13,29 @@ class DashboardController extends Controller
     public function index()
     {
         $kurirId = Auth::id();
-        $today   = Carbon::today();
+        $today   = Carbon::today()->toDateString();
 
-        // Ambil pengiriman yang periode keberangkatan–distribusinya mencakup hari ini
+        // Cari pengiriman aktif (berdasarkan periode keberangkatan–distribusi)
         $latestPengiriman = Pengiriman::whereDate('tanggal_keberangkatan', '<=', $today)
             ->where(function ($q) use ($today) {
                 $q->whereDate('tanggal_distribusi', '>=', $today)
                     ->orWhereNull('tanggal_distribusi');
             })
-            ->orderBy('tanggal_keberangkatan', 'desc')
+            ->orderByDesc('tanggal_keberangkatan')
             ->first();
+
+        // Kalau tidak ada pengiriman aktif, ambil pengiriman terakhir sebelum hari ini
+        if (!$latestPengiriman) {
+            $latestPengiriman = Pengiriman::whereDate('tanggal_keberangkatan', '<=', $today)
+                ->orderByDesc('tanggal_keberangkatan')
+                ->first();
+        }
 
         // Ambil pengiriman sebelumnya (periode sebelum latest)
         $previousPengiriman = null;
         if ($latestPengiriman) {
             $previousPengiriman = Pengiriman::whereDate('tanggal_distribusi', '<', $latestPengiriman->tanggal_keberangkatan)
-                ->orderBy('tanggal_keberangkatan', 'desc')
+                ->orderByDesc('tanggal_keberangkatan')
                 ->first();
         }
 
