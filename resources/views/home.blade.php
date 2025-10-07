@@ -291,19 +291,19 @@
             <!-- Hasil Tracking -->
             <div class="container d-flex justify-content-center mt-3">
                 <div class="col-12 col-md-8 col-lg-6">
-                    <div class="p-4 rounded-4 shadow-lg text-center bg-white border-0"
+                    <div class="p-4 rounded-4 shadow-lg text-center bg-primary border-0 text-white"
                         style="transition: transform .2s;" onmouseover="this.style.transform='scale(1.02)'"
                         onmouseout="this.style.transform='scale(1)'">
 
-                        <h3 class="mb-4 text-primary fw-bold">Paket Anda</h3>
+                        <h3 class="mb-4 fw-bold text-white">Paket Anda</h3>
 
                         @if (isset($pelanggan) && $pelanggan)
-                            <p class="fs-5 fw-semibold">{{ $pelanggan->nama }}</p>
+                            <p class="fs-5 fw-semibold text-light">{{ $pelanggan->nama }}</p>
 
                             @if (isset($barangs) && $barangs->count() > 0)
                                 <div class="table-responsive mt-2">
-                                    <table class="table table-bordered table-striped shadow-sm">
-                                        <thead class="table">
+                                    <table class="table table-bordered table-striped shadow-sm bg-white text-dark">
+                                        <thead class="table-primary">
                                             <tr>
                                                 <th>No</th>
                                                 <th>Kategori</th>
@@ -323,19 +323,19 @@
                                 </div>
                             @endif
 
-
                             @if (($jumlahBarang ?? 0) == 0)
-                                <div class="alert alert-warning text-center rounded-3 shadow-sm">
-                                    Anda tidak memiliki paket di priode ini
+                                <div class="alert alert-warning text-center rounded-3 shadow-sm bg-light text-dark">
+                                    Anda tidak memiliki paket di periode ini
                                 </div>
                             @endif
                         @else
-                            <p class="text-muted fst-italic">Silakan masukkan kode tracking Anda untuk melihat paket.
+                            <p class="text-light fst-italic">Silakan masukkan kode tracking Anda untuk melihat paket.
                             </p>
                         @endif
                     </div>
                 </div>
             </div>
+
 
         </section><!-- /Features Section -->
 
